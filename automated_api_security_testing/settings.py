@@ -49,6 +49,8 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     'api_security',
+    'user',
+    'user_activity',
 ]
 
 INSTALLED_APPS = [
@@ -258,7 +260,7 @@ TODAY = datetime.strptime(
     )
 CURRENT_TIME = timezone.datetime.now().time()
 
-# AUTH_USER_MODEL = "user.UserAccount"
+AUTH_USER_MODEL = "user.UserAccount"
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "LLM-Powered Automated API Security Testing Framework All API'S List",

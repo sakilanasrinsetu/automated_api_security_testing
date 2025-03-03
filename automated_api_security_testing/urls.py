@@ -43,14 +43,14 @@ schema_urlpatterns = [
 
 
 url_patterns = [
-    # path('user_account/', include('user.urls')),
+    path('user_account/', include('user.urls')),
     
 ]
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('admin/', include('rest_framework.urls')),
-    # path('', include([path('hr_resource_management/', include(url_patterns))])),
+    path('', include([path('automated_api_security_testing/', include(url_patterns))])),
 ] + schema_urlpatterns
 
 

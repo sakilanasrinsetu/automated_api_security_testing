@@ -42,6 +42,9 @@ ALLOWED_HOSTS = []
 THIRD_PARTY_APPS = [
     'rest_framework',
     'django_filters',
+    'django_extensions',
+    'drf_spectacular',
+    'dj_rest_auth.registration',
 ]
 
 LOCAL_APPS = [
@@ -258,8 +261,8 @@ CURRENT_TIME = timezone.datetime.now().time()
 # AUTH_USER_MODEL = "user.UserAccount"
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Human Resource Management All API'S List",
-    "DESCRIPTION": "Human Resource Management Description ",
+    "TITLE": "LLM-Powered Automated API Security Testing Framework All API'S List",
+    "DESCRIPTION": "LLM-Powered Automated API Security Testing Framework Description ",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SWAGGER_UI_SETTINGS": {

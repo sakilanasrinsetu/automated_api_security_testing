@@ -46,50 +46,8 @@ class CustomViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     def get_permissions(self):
-        try:
-            class_model_name = self.queryset.model.__name__
-            model_name  = ''.join(['_' + c.lower() if c.isupper() else c for c in class_model_name]).lstrip('_')
-
-            list_permission = f"can_view_list_{model_name}"
-            add_permission = f"can_add_{model_name}"
-            update_permission = f"can_update_{model_name}"
-            destroy_permission = f"can_destroy_{model_name}"
-            retrieve_permission = f"can_retrieve_{model_name}"
-                
-            
-            if self.action in ["list"]:
-                # permission_classes = [
-                #     (CheckCustomPermission(list_permission))
-                # ]
-                permission_classes = [permissions.IsAuthenticated]
-                
-            elif self.action in ["create"]:
-                # permission_classes = [
-                #     (CheckCustomPermission(add_permission))
-                # ]
-                permission_classes = [permissions.IsAuthenticated]
-            elif self.action in ["update"]:
-                # permission_classes = [
-                #     (CheckCustomPermission(update_permission))
-                # ]
-                permission_classes = [permissions.IsAuthenticated]
-            elif self.action in ["destroy"]:
-                # permission_classes = [
-                #     (CheckCustomPermission(destroy_permission))
-                # ]
-                permission_classes = [permissions.IsAuthenticated]
-            elif self.action in ["retrieve"]:
-                # permission_classes = [
-                #     (CheckCustomPermission(retrieve_permission))
-                # ]
-                permission_classes = [permissions.IsAuthenticated]
-            else:
-                permission_classes = [permissions.AllowAny]
-            return [permission() for permission in permission_classes]
-        
-        except:
-            permission_classes = [permissions.AllowAny]
-            return [permission() for permission in permission_classes]
+        permission_classes = [permissions.AllowAny]
+        return [permission() for permission in permission_classes]
 
     
     # ..........***.......... Get All Data ..........***..........
@@ -132,7 +90,6 @@ class CustomViewSet(viewsets.ModelViewSet):
             if name:
                 slug = unique_slug_generator(name = name) 
                 
-            serializer.validated_data['created_by'] = request.user
             try:
                 serializer.validated_data['slug'] = slug
             except:

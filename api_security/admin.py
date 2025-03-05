@@ -1,10 +1,14 @@
 from django.contrib import admin
-from .models import (
-    APITest, SecurityTestCase, TestExecution, LLMAnalysis, 
-    Report, AttackSimulation, APILog, TestSchedule
-)
+from .models import *
 
 # Register your models here. 
+@admin.register(MITREAttackTactic)
+class MITREAttackTacticAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug','created_at')
+    search_fields = ('name',)
+    list_filter = ('name','created_at')
+    readonly_fields = ('created_at',)
+    
 @admin.register(APITest)
 class APITestAdmin(admin.ModelAdmin):
     list_display = ('name', 'endpoint', 'http_method', 'auth_type', 'created_by', 'created_at')

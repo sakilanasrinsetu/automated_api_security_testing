@@ -55,8 +55,7 @@ TEST_SCHEDULE_STATUS = [
 
 # MITRE ATT&CK Models for Tactics and Techniques
 class MITREAttackTactic(models.Model):
-    """Define MITRE ATT&CK tactics used in tests."""
-    tactic_id = models.CharField(max_length=50, unique=True)
+    slug = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -65,8 +64,7 @@ class MITREAttackTactic(models.Model):
         return self.name
 
 class MITREAttackTechnique(models.Model):
-    """Define MITRE ATT&CK techniques related to tactics."""
-    technique_id = models.CharField(max_length=50, unique=True)
+    slug = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     description = models.TextField()
     tactic = models.ForeignKey(MITREAttackTactic, on_delete=models.CASCADE, related_name='techniques')
@@ -79,6 +77,7 @@ class MITREAttackTechnique(models.Model):
 # API Test Models
 class APITest(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    slug = models.CharField(max_length=255, unique=True)
     endpoint = models.URLField()
     http_method = models.CharField(max_length=10, choices=HTTP_METHOD, default="GET")
     headers = models.JSONField(blank=True, null=True)
@@ -95,6 +94,7 @@ class APITest(models.Model):
 
 class SecurityTestCase(models.Model):
     name = models.CharField(max_length=255)
+    slug = models.CharField(max_length=255, unique=True)
     description = models.TextField()
     mitre_attack_technique = models.ForeignKey(MITREAttackTechnique, on_delete=models.CASCADE, related_name='security_test_cases')
     severity = models.CharField(max_length=20, choices=SEVERITY_TYPE, default='Low')
@@ -109,6 +109,7 @@ class SecurityTestCase(models.Model):
 
 class TestExecution(models.Model):
     api_test = models.ForeignKey(APITest, on_delete=models.CASCADE, related_name='test_executions')
+    slug = models.CharField(max_length=255, unique=True)
     security_test_case = models.ForeignKey(SecurityTestCase, on_delete=models.CASCADE, related_name='test_executions')
     executed_by = models.ForeignKey(UserAccount, on_delete=models.SET_NULL, null=True, related_name="test_executions")
     executed_at = models.DateTimeField(auto_now_add=True)
@@ -124,9 +125,9 @@ class TestExecution(models.Model):
         return f"Test on {self.api_test.name} - {self.security_test_case.name}"
 
 
-class LLMAnalysis(models.Model):
-    """AI-driven vulnerability analysis using LLM models."""
+class LLMAnalysis(models.Model): 
     test_execution = models.ForeignKey(TestExecution, on_delete=models.CASCADE, related_name='llm_analysis')
+    slug = models.CharField(max_length=255, unique=True)
     analysis_result = models.TextField()
     risk_score = models.IntegerField(default=0)  # 0-100 Risk Score
     mitigation_suggestions = models.TextField()
@@ -138,9 +139,9 @@ class LLMAnalysis(models.Model):
         return f"LLM Analysis for {self.test_execution}"
 
 
-class Report(models.Model):
-    """Security test reports containing execution summary and recommendations."""
+class Report(models.Model): 
     test_execution = models.ForeignKey(TestExecution, on_delete=models.CASCADE, related_name='reports')
+    slug = models.CharField(max_length=255, unique=True)
     summary = models.TextField()
     recommendations = models.TextField()
     generated_by = models.ForeignKey(UserAccount, on_delete=models.SET_NULL, null=True, related_name='reports')
@@ -153,9 +154,9 @@ class Report(models.Model):
         return f"Report for {self.test_execution}"
 
 
-class AttackSimulation(models.Model):
-    """Simulated attacks based on predefined MITRE ATT&CK test cases."""
+class AttackSimulation(models.Model): 
     api_test = models.ForeignKey(APITest, on_delete=models.CASCADE, related_name="attack_simulations")
+    slug = models.CharField(max_length=255, unique=True)
     security_test_case = models.ForeignKey(SecurityTestCase, on_delete=models.CASCADE, related_name="attack_simulations")
     executed_by = models.ForeignKey(UserAccount, on_delete=models.SET_NULL, null=True, related_name="attack_simulations")
     executed_at = models.DateTimeField(auto_now_add=True)
@@ -169,9 +170,9 @@ class AttackSimulation(models.Model):
         return f"Simulation on {self.api_test.name} - {self.security_test_case.name}"
 
 
-class APILog(models.Model):
-    """Logs API authentication attempts and security events."""
+class APILog(models.Model): 
     api_test = models.ForeignKey(APITest, on_delete=models.CASCADE, related_name='api_logs')
+    slug = models.CharField(max_length=255, unique=True)
     attempted_by = models.ForeignKey(UserAccount, on_delete=models.SET_NULL, null=True, blank=True, related_name='api_logs')
     ip_address = models.GenericIPAddressField()
     user_agent = models.TextField()
@@ -186,9 +187,9 @@ class APILog(models.Model):
         return f"Log for {self.api_test.name} - {self.status}"
 
 
-class TestSchedule(models.Model):
-    """Automates scheduled API security tests."""
+class TestSchedule(models.Model): 
     api_test = models.ForeignKey(APITest, on_delete=models.CASCADE, related_name="test_schedules")
+    slug = models.CharField(max_length=255, unique=True)
     security_test_case = models.ForeignKey(SecurityTestCase, on_delete=models.CASCADE, related_name="test_schedules")
     scheduled_by = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="test_schedules")
     schedule_time = models.DateTimeField()

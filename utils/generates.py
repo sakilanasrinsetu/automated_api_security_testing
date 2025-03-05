@@ -34,9 +34,10 @@ def unique_slug_generator(name):
     timestamp_now = time.strftime("%H%M%S")
     random_str = random_string_generator()
     random_num = random_number_generator() 
-    bindings = f"{random_str}-{timestamp_d}-{random_num}-{timestamp_now}-{timestamp_y}-{random_num}-{timestamp_m}"
+    bindings = f"{random_str}-{timestamp_d}-{random_num}-{timestamp_m}-{timestamp_now}-{timestamp_y}-{random_num}"
     
     slug = bindings
+    
     if name:
         cleaned_name = re.sub(r'[^a-zA-Z0-9\s]', '', name) 
         

@@ -31,4 +31,4 @@ class MITREAttackTechniqueSerializer(serializers.ModelSerializer):
         
     def to_representation(self, instance):
         self.fields["tactic"] = MITREAttackTacticSerializer(read_only=True) 
-        return super(MITREAttackTechniqueSerializer, self).to_representation(instance)
+        return super().to_representation(instance)

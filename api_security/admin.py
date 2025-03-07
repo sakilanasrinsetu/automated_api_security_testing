@@ -9,9 +9,16 @@ class MITREAttackTacticAdmin(admin.ModelAdmin):
     list_filter = ('name','created_at')
     readonly_fields = ('created_at',)
     
+@admin.register(MITREAttackTechnique)
+class MITREAttackTechniqueAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'tactic','created_at')
+    search_fields = ('name',)
+    list_filter = ('name','created_at')
+    readonly_fields = ('created_at',)
+    
 @admin.register(APITest)
 class APITestAdmin(admin.ModelAdmin):
-    list_display = ('name', 'endpoint', 'http_method', 'auth_type', 'created_by', 'created_at')
+    list_display = ('name', 'slug','endpoint', 'http_method', 'auth_type', 'created_by', 'created_at')
     search_fields = ('name', 'endpoint', 'auth_type')
     list_filter = ('http_method', 'auth_type', 'created_at')
     readonly_fields = ('created_at',)

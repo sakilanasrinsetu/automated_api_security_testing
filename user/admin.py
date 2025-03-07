@@ -5,7 +5,7 @@ from user.models import *
 
 
 class UserAccountAdmin(admin.ModelAdmin):
-    list_display = ['id','first_name', 'last_name', 'email','phone', 'is_active']
+    list_display = ['first_name', 'last_name','id', 'email','phone', 'is_active']
 
     class Meta:
         model = UserAccount

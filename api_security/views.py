@@ -62,7 +62,6 @@ class APITestViewSet(CustomViewSet):
             )
         serializer_data['http_method'] = http_method
 
-        # Dynamically set auth_type from request.auth.type (if available)
         if hasattr(request.auth, 'type'):
             serializer_data['auth_type'] = request.auth.type
         else:

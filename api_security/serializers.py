@@ -68,3 +68,14 @@ class SecurityTestCaseSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         self.fields["mitre_attack_technique"] = MITREAttackTacticSerializer(read_only=True) 
         return super().to_representation(instance)
+    
+class TestExecutionSerializer(serializers.ModelSerializer):
+    security_test_case = serializers.SlugRelatedField(slug_field='slug', queryset=SecurityTestCase.objects.all())
+    
+    class Meta:
+        model = TestExecution
+        fields = "__all__"
+        
+        read_only_fields = [
+            'slug',
+            ]

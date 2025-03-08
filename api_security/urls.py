@@ -24,4 +24,11 @@ urlpatterns =[
          APITestViewSet.as_view({'delete': 'destroy',
                               "patch":"update", "get":"retrieve"},
                               name='api_test')),
+    path('security_test_case/',
+         SecurityTestCaseViewSet.as_view({'get': 'list', 'post':'create'}, name='security_test_case')),
+    
+    path('security_test_case/<slug>/',
+         SecurityTestCaseViewSet.as_view({'delete': 'destroy',
+                              "patch":"update", "get":"retrieve"},
+                              name='security_test_case')),
 ]

@@ -52,3 +52,19 @@ class APITestSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         self.fields["created_by"] = UserDetailsSerializer(read_only=True) 
         return super().to_representation(instance)
+        
+class SecurityTestCaseSerializer(serializers.ModelSerializer): 
+    choices_display = serializers.CharField(source = 'get_choices_display', read_only=True)
+    mitre_attack_technique = serializers.SlugRelatedField(slug_field='slug', queryset=MITREAttackTechnique.objects.all())
+    class Meta:
+        model = SecurityTestCase
+        fields = "__all__"
+        
+        read_only_fields = [
+            'slug',
+            'choices',
+            ]
+        
+    def to_representation(self, instance):
+        self.fields["mitre_attack_technique"] = MITREAttackTacticSerializer(read_only=True) 
+        return super().to_representation(instance)

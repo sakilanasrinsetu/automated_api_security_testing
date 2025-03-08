@@ -92,3 +92,9 @@ class APITestViewSet(CustomViewSet):
             {"data": serializer.data, "message": "APITest created successfully."},
             status=201
         )
+    
+class SecurityTestCaseViewSet(CustomViewSet):
+    queryset = SecurityTestCase.objects.all().order_by('-created_at')
+    lookup_field = 'slug'
+    serializer_class = SecurityTestCaseSerializer
+    permission_classes = [permissions.IsAuthenticated]

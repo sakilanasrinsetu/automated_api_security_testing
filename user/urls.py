@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import *
+from user.views import UserViewSet
 
 urlpatterns =[
     path('register/',

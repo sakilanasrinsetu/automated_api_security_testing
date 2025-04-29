@@ -19,7 +19,7 @@ schema_urlpatterns = [
 
 app_url_patterns = [
     path('user_account/', include('user.urls')),
-    path('api_security/', include('api_security.urls')),
+    # path('api_security/', include('api_security.urls')),
 ]
 
 

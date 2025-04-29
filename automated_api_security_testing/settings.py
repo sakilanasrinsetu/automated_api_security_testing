@@ -48,7 +48,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    'api_security',
+    'api_scanner',
     'user',
     'user_activity',
 ]

@@ -29,3 +29,10 @@ def time_str_mix_slug():
         timestamp_y + random_num + timestamp_m
     )
     return bindings
+
+
+def generate_unique_slug(text: str) -> str:
+
+    base_slug = slugify(text or "user")
+    unique_part = time_str_mix_slug()
+    return f"{base_slug}-{unique_part}"

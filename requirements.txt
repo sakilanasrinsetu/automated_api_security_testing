@@ -14,3 +14,4 @@ djangorestframework-simplejwt==5.5.0
 dj_rest_auth
 django-debug-toolbar==5.0.1
 psutil==5.8.0
+celery

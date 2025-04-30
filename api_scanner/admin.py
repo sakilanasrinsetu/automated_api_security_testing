@@ -28,7 +28,7 @@ class APITestAdmin(admin.ModelAdmin):
 
 @admin.register(SecurityTestCase)
 class SecurityTestCaseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'mitre_attack_technique', 'severity', 'created_at')
+    list_display = ('name', 'api_test', 'slug', 'mitre_attack_technique', 'severity', 'created_at')
     search_fields = ('name', 'slug', 'mitre_attack_technique__name')
     list_filter = ('severity', 'created_at')
     readonly_fields = ('created_at', 'updated_at')

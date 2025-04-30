@@ -1,8 +1,11 @@
 from rest_framework import serializers
-from api_scanner.models import TestExecution
+from ..models import TestExecution
 
-class TestExecutionResultSerializer(serializers.ModelSerializer):
+class TestExecutionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestExecution
-        fields = '__all__'
-        read_only_fields = fields
+        fields = [
+            'id', 'slug', 'api_test', 'security_test_case', 
+            'status_code', 'success', 'executed_at'
+        ]
+        read_only_fields = fields  # All fields are read-only

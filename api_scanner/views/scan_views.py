@@ -1,78 +1,111 @@
-from rest_framework import generics, permissions
-from api_scanner.models import APITest
-from api_scanner.serializers.test_serializers import APITestSerializer
-
-from rest_framework.views import APIView
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import status, viewsets
 from django.shortcuts import get_object_or_404
 
-from api_scanner.models import APITest, SecurityTestCase, TestExecution
-from api_scanner.serializers.execution_serializers import TestExecutionResultSerializer
+from api_scanner.serializers.test_serializers import APITestCreateUpdateSerializer, APITestDetailSerializer, APITestListSerializer, AttackSimulationSerializer
+from api_scanner.serializers.log_serializers import APILogSerializer
+from ..models import APITest, SecurityTestCase, TestExecution, APILog
+from ..tasks import execute_api_test
+from ..serializers.execution_serializers import TestExecutionSerializer
 
-import requests
-
-# List & Create
-class APITestListCreateView(generics.ListCreateAPIView):
-    queryset = APITest.objects.all().order_by('-created_at')
-    serializer_class = APITestSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
-
-# Retrieve, Update, Delete
-class APITestDetailView(generics.RetrieveUpdateDestroyAPIView):
+class APITestViewSet(viewsets.ModelViewSet):
     queryset = APITest.objects.all()
-    serializer_class = APITestSerializer
     lookup_field = 'slug'
-    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return APITestCreateUpdateSerializer
+        elif self.action == 'list':
+            return APITestListSerializer
+        elif self.action == 'retrieve':
+            return APITestDetailSerializer
+        elif self.action == 'simulate_attack':
+            return AttackSimulationSerializer
+        return super().get_serializer_class()
 
-
-class ExecuteAllTestCasesView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, slug):
-        api_test = get_object_or_404(APITest, slug=slug)
+    @action(detail=True, methods=['post'])
+    def execute(self, request, slug=None):
+        """
+        POST /api/tests/{slug}/execute/
+        Execute all test cases for this API
+        """
+        api_test = self.get_object()
         test_cases = SecurityTestCase.objects.filter(api_test=api_test)
-
+        
         if not test_cases.exists():
-            return Response({"detail": "No test cases found for this API test."},
-                            status=status.HTTP_404_NOT_FOUND)
-
-        results = []
-
-        for case in test_cases:
-            try:
-                # Prepare the modified request based on the test case
-                payload = api_test.body or {}
-                injection_point = case.injection_point  # e.g., 'username' or 'email'
-                if injection_point in payload:
-                    payload[injection_point] = case.payload
-
-                response = requests.request(
-                    method=api_test.http_method,
-                    url=api_test.endpoint,
-                    headers=api_test.headers or {},
-                    json=payload if api_test.http_method in ["POST", "PUT", "PATCH"] else None,
-                    params=payload if api_test.http_method == "GET" else None
-                )
-
-                result = TestExecution.objects.create(
+            return Response(
+                {"detail": "No test cases found for this API"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Create execution records
+        executions = []
+        for test_case in test_cases:
+            execution = TestExecution.objects.create(
+                api_test=api_test,
+                security_test_case=test_case,
+                executed_by=request.user
+            )
+            executions.append(execution)
+            # Trigger async execution
+            execute_api_test.delay(execution.id)
+        
+        serializer = TestExecutionSerializer(executions, many=True)
+        return Response(
+            {
+                "detail": f"Started execution of {len(executions)} test cases",
+                "executions": serializer.data
+            },
+            status=status.HTTP_202_ACCEPTED
+        )
+        
+    @action(detail=True, methods=['post'], serializer_class=AttackSimulationSerializer)
+    def simulate_attack(self, request, slug=None):
+        api_test = self.get_object()
+        test_cases = api_test.security_test_cases.filter(severity__in=['High', 'Critical'])
+        
+        if not test_cases.exists():
+            # Return available severities for debugging
+            available = api_test.security_test_cases.values_list('severity', flat=True).distinct()
+            return Response(
+                {
+                    "detail": "No high-severity test cases found",
+                    "available_severities": list(available),
+                    "suggestion": "Create test cases with High/Critical severity first"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        simulations = []
+        for test_case in test_cases:
+            simulations.append(
+                AttackSimulation.objects.create(
                     api_test=api_test,
-                    test_case=case,
-                    status_code=response.status_code,
-                    response_text=response.text,
+                    security_test_case=test_case,
                     executed_by=request.user
                 )
-
-                results.append(result)
-
-            except Exception as e:
-                results.append({
-                    "error": str(e),
-                    "test_case_id": case.id
-                })
-
-        serialized = TestExecutionResultSerializer(results, many=True)
-        return Response(serialized.data, status=status.HTTP_200_OK)
+            )
+        
+        return Response(
+            self.get_serializer(simulations, many=True).data,
+            status=status.HTTP_202_ACCEPTED
+        )
+        
+    @action(detail=True, methods=['get'], url_path='logs')
+    def logs(self, request, slug=None):
+        """
+        GET /api/tests/{slug}/logs/
+        Retrieve logs for a specific API test
+        """
+        api_test = self.get_object()
+        logs = APILog.objects.filter(api_test=api_test).order_by('-timestamp')
+        
+        # Pagination
+        page = self.paginate_queryset(logs)
+        if page is not None:
+            serializer = APILogSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+            
+        serializer = APILogSerializer(logs, many=True)
+        return Response(serializer.data)

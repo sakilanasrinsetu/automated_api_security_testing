@@ -1,4 +1,6 @@
+import uuid
 from django.db import models
+from django.forms import ValidationError
 from user.models import UserAccount
 
 # Constants
@@ -53,6 +55,13 @@ TEST_SCHEDULE_STATUS = [
     ('Blocked', 'Blocked'),
 ]
 
+STATUS_CHOICES = [
+        ('queued', 'Queued'),
+        ('running', 'Running'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed')
+    ]
+
 # MITRE ATT&CK Models
 class MITREAttackTactic(models.Model):
     slug = models.CharField(max_length=255, unique=True, db_index=True)
@@ -95,6 +104,7 @@ class SecurityTestCase(models.Model):
     slug = models.CharField(max_length=255, unique=True, db_index=True)
     description = models.TextField()
     mitre_attack_technique = models.ForeignKey(MITREAttackTechnique, on_delete=models.CASCADE, related_name='security_test_cases')
+    api_test = models.ForeignKey(APITest, on_delete=models.CASCADE, null=True, blank=True, related_name='security_test_cases')
     severity = models.CharField(max_length=30, choices=SEVERITY_TYPE, default='Low')
     payload = models.JSONField()
     expected_response = models.TextField()
@@ -103,6 +113,14 @@ class SecurityTestCase(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.mitre_attack_technique.name}"
+    
+    def clean(self):
+        if not hasattr(self, 'api_test'):
+            raise ValidationError("Test case must be associated with an API test")
+    
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 class TestExecution(models.Model):
     api_test = models.ForeignKey(APITest, on_delete=models.CASCADE, related_name='test_executions')
@@ -110,16 +128,24 @@ class TestExecution(models.Model):
     security_test_case = models.ForeignKey(SecurityTestCase, on_delete=models.CASCADE, related_name='test_executions')
     executed_by = models.ForeignKey(UserAccount, on_delete=models.SET_NULL, null=True, related_name="executed_test_executions")
     executed_at = models.DateTimeField(auto_now_add=True)
-    status_code = models.IntegerField()
-    response_body = models.JSONField()
+    response_body = models.JSONField(default=dict)  # Added default
     detected_vulnerabilities = models.JSONField(blank=True, null=True)
     success = models.BooleanField(default=False)
     remarks = models.TextField(blank=True)
+    custom_payload = models.JSONField(blank=True, null=True)
+    execution_parameters = models.JSONField(default=dict)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='queued')
+    status_code = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Test on {self.api_test.name} - {self.security_test_case.name}"
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = f"exec-{uuid.uuid4().hex[:10]}"  # Now using the imported uuid
+        super().save(*args, **kwargs)
 
 class LLMAnalysis(models.Model):
     test_execution = models.ForeignKey(TestExecution, on_delete=models.CASCADE, related_name='llm_analyses')

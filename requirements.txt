@@ -16,3 +16,4 @@ django-debug-toolbar==5.0.1
 psutil==5.8.0
 celery
 faker
+redis

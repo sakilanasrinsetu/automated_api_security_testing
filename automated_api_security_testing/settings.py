@@ -304,3 +304,9 @@ SPECTACULAR_SETTINGS = {
 }
 
 NOT_FOUND_IMAGE ='https://www.thesource.ca/medias/404-error-page-1.jpg?context=bWFzdGVyfGltYWdlc3w0MjQwNjF8aW1hZ2UvanBlZ3xpbWFnZXMvaDQwL2g4ZS84ODQwNzQ4NjIwNjYwLmpwZ3wzZjQwZjQwMz'
+
+
+# Celery settings (RabbitMQ example)
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
+CELERY_TASK_ALWAYS_EAGER = True

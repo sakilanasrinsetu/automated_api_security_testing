@@ -126,3 +126,16 @@ def execute_security_test_case(self, execution_id):
         execution.remarks = str(e)
         execution.save()
         raise self.retry(exc=e, countdown=60)
+    
+    
+    
+@shared_task
+def analyze_with_llm(analysis_id):
+    from ..models import LLMAnalysis
+    analysis = LLMAnalysis.objects.get(id=analysis_id)
+    
+    # Your LLM analysis logic here
+    analysis.analysis_result = "Sample analysis result"
+    analysis.risk_score = 0.85
+    analysis.mitigation_suggestions = "Implement input validation"
+    analysis.save()

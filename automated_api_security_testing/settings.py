@@ -32,7 +32,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+# DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = True
+
+print("DEBUG", DEBUG)
 
 ALLOWED_HOSTS = ["*"]
 
@@ -140,7 +143,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+MEDIA_URL = '/media/'
+
+
+STATIC_ROOT = os.path.join('static_cdn', 'static_root')
+MEDIA_ROOT = os.path.join('static_cdn', 'media_root')
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -180,8 +193,13 @@ SWAGGER_SETTINGS = {
 
 REST_FRAMEWORK = {
 
+    
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',  # Fix typo: 'BrowsableAPIRenderer'
+    ],
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ),
 
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -194,10 +212,11 @@ REST_FRAMEWORK = {
         'rest_framework.filters.OrderingFilter',
     ),
 
-    "DEFAULT_AUTHENTICATION_CLASSES": (
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+        "rest_framework.authentication.SessionAuthentication",  # Add this for browser login
     ),
     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
     'DATETIME_FORMAT': '%b %d at %I:%M %P',

@@ -8,35 +8,30 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
-
+# Schema/Swagger/Redoc URLs
 schema_urlpatterns = [
-    path("spectacular/", SpectacularAPIView.as_view(), name="schema"),
-    path("", SpectacularSwaggerView.as_view(url_name="schema"), name="doc"),
-    path("redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
-    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
-
-app_url_patterns = [
+# App-specific URLs
+app_urlpatterns = [
     path('user_account/', include('user.urls')),
-    # path('api_scanner/', include('api_scanner.urls')),
+    path('api/', include('api_scanner.urls')),
     path('evaluation/', include('evaluation.urls')),
 ]
 
-
+# Main URL configuration
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('admin/', include('rest_framework.urls')),
-    path('', include(app_url_patterns)),
+    path('api-auth/', include('rest_framework.urls')),  # DRF login/logout views
+    path('', include(app_urlpatterns)),
 ] + schema_urlpatterns
 
-
+# Debug toolbar and static/media files in development
 if settings.DEBUG:
-    urlpatterns.append(path("__debug__/", include("debug_toolbar.urls")))
-
-
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL,
-                          document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, 
-                          document_root=settings.MEDIA_ROOT)
+    urlpatterns = urlpatterns + \
+        static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns = urlpatterns + \
+        static(settings.MEDIA_URL, document_root= settings.MEDIA_ROOT)

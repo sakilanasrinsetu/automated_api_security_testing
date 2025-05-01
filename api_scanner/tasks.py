@@ -131,7 +131,7 @@ def execute_security_test_case(self, execution_id):
     
 @shared_task
 def analyze_with_llm(analysis_id):
-    from ..models import LLMAnalysis
+    from .models import LLMAnalysis
     analysis = LLMAnalysis.objects.get(id=analysis_id)
     
     # Your LLM analysis logic here

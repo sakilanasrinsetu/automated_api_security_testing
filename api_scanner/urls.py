@@ -1,17 +1,12 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path, include 
 
-from api_scanner.views.execution_views import ExecutionViewSet
-from api_scanner.views.test_case_views import SecurityTestCaseViewSet
-from .views.scan_views import APITestViewSet
+from .views import *
 
-router = DefaultRouter()
-
-router.register(r'tests', APITestViewSet, basename='api-test')
-router.register(r'test-cases', SecurityTestCaseViewSet, basename='test-case')
-router.register(r'executions', ExecutionViewSet, basename='execution')
-
-
-urlpatterns = [
-    path('', include(router.urls)),
+urlpatterns =[
+     path('api_test/',
+         APITestViewSet.as_view({'get': 'list', 'post': 'create'}, name='api_test')),
+     path('api_test/<slug>/',
+         APITestViewSet.as_view({'delete': 'destroy',
+                              "patch":"update", "get":"retrieve"},
+                              name='api_test')),
 ]

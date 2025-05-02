@@ -86,7 +86,7 @@ class UserViewSet(CustomViewSet):
         if not password:
             return ResponseWrapper(error_msg='Password is Not Given', status=400)
 
-        qs = UserAccount.objects.filter(Q(username=username)| Q(email=username)
+        qs = UserAccount.objects.filter(Q(email=username)| Q(phone=username)
                                         ).last()
 
         if not qs:

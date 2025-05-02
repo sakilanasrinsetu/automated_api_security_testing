@@ -64,6 +64,7 @@ STATUS_CHOICES = [
 
 # MITRE ATT&CK Models
 class MITREAttackTactic(models.Model):
+    mitre_attack_id = models.CharField(max_length=255, unique=True, db_index=True)
     slug = models.CharField(max_length=255, unique=True, db_index=True)
     name = models.CharField(max_length=255)
     description = models.TextField()
@@ -73,8 +74,13 @@ class MITREAttackTactic(models.Model):
         return self.name
 
 class MITREAttackTechnique(models.Model):
+    mitre_attack_technique_id = models.CharField(max_length=255, unique=True, db_index=True)
     slug = models.CharField(max_length=255, unique=True, db_index=True)
     name = models.CharField(max_length=255)
+    severity_weight = models.FloatField(
+        default=1.0,
+        help_text="Risk weighting factor (1.0-4.0)"
+    )
     description = models.TextField()
     tactic = models.ForeignKey(MITREAttackTactic, on_delete=models.CASCADE, related_name='techniques')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -84,7 +90,7 @@ class MITREAttackTechnique(models.Model):
 
 # API Testing Models
 class APITest(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     slug = models.CharField(max_length=255, unique=True, db_index=True)
     endpoint = models.URLField()
     http_method = models.CharField(max_length=10, choices=HTTP_METHOD, default="GET")
@@ -92,6 +98,7 @@ class APITest(models.Model):
     body = models.JSONField(blank=True, null=True)
     auth_type = models.CharField(max_length=20, choices=AUTH_TYPE, default='None')
     auth_credentials = models.JSONField(blank=True, null=True)
+    expected_response = models.JSONField(blank=True, null=True)
     created_by = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="created_api_tests")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

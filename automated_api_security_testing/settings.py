@@ -310,3 +310,10 @@ NOT_FOUND_IMAGE ='https://www.thesource.ca/medias/404-error-page-1.jpg?context=b
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
 CELERY_TASK_ALWAYS_EAGER = True
+
+CELERY_BEAT_SCHEDULE = {
+    'retrain-models': {
+        'task': 'api_scanner.tasks.retrain_models',
+        'schedule': crontab(hour=3, minute=0),  # Daily at 3 AM
+    },
+}

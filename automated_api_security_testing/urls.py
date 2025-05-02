@@ -18,7 +18,7 @@ schema_urlpatterns = [
 # App-specific URLs
 app_urlpatterns = [
     path('user_account/', include('user.urls')),
-    path('api/', include('api_scanner.urls')),
+    path('api_scanner/', include('api_scanner.urls')),
     path('evaluation/', include('evaluation.urls')),
 ]
 

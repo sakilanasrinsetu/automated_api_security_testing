@@ -17,3 +17,4 @@ psutil==5.8.0
 celery
 faker
 redis
+stix2

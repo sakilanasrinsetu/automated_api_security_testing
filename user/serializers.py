@@ -9,7 +9,8 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
         fields = [
-            'username',
+            'email',
+            'phone',
             'password',
             ]
         
@@ -62,3 +63,19 @@ class UserDetailsSerializer(serializers.ModelSerializer):
             'date_joined',
             'last_login',
             ]
+        
+class UserInformationBaseSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField(read_only = True)
+    class Meta:
+        model = UserAccount
+        fields = [
+                    'id',    
+                    'name',
+                    'email',  
+                    'phone', 
+                ]
+        
+    def get_name(self, obj):
+        if obj.first_name or obj.last_name:
+            return f"{obj.first_name} {obj.last_name}".strip()
+        return '----'

@@ -16,22 +16,27 @@ def detect_mitre_patterns(api_test):
         # Credential Exposure
         if _check_credential_exposure(api_test):
             detected.extend(_get_techniques_by_ids(["T1552.001"]))
+            logger.debug("Detected Credential Exposure: T1552.001")
         
         # Authentication Weakness
         if _check_auth_weakness(api_test):
             detected.append(_get_technique("T1078"))
+            logger.debug("Detected Authentication Weakness: T1078")
         
         # IDOR Detection
         if _check_idor(api_test):
             detected.append(_get_technique("T1531"))
+            logger.debug("Detected IDOR: T1531")
             
         # Data Exposure
         if _check_data_exposure(api_test):
             detected.append(_get_technique("T1432"))
+            logger.debug("Detected Data Exposure: T1432")
             
         # Rate Limiting
         if _check_rate_limiting(api_test):
             detected.append(_get_technique("T1498"))
+            logger.debug("Detected Rate Limiting Issue: T1498")
 
     except Exception as e:
         logger.error(f"Detection failed: {str(e)}", exc_info=True)
@@ -83,18 +88,21 @@ def _check_credential_exposure(api_test):
     try:
         body = json.loads(api_test.body) if isinstance(api_test.body, str) else api_test.body
     except json.JSONDecodeError:
+        logger.debug("Invalid JSON in body, skipping credential exposure check.")
         return False
 
     sensitive = {'password', 'secret', 'token', 'credential'}
     fields = [k.lower() for k in body.keys()]
     
-    return (
-        api_test.http_method == 'GET' and 
-        any(f in fields for f in sensitive)
-    ) or (
-        api_test.auth_type == 'None' and 
-        any(f in fields for f in sensitive)
-    )
+    if api_test.http_method == 'GET' and any(f in fields for f in sensitive):
+        logger.debug(f"Credentials found in GET request body: {fields}")
+        return True
+    elif api_test.auth_type == 'None' and any(f in fields for f in sensitive):
+        logger.debug(f"Credentials found in body with no authentication: {fields}")
+        return True
+    
+    logger.debug(f"No credentials found in body: {fields}")
+    return False
 
 def _check_auth_weakness(api_test):
     """Check authentication vulnerabilities"""

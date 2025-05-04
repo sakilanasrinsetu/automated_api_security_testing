@@ -201,6 +201,9 @@ class APILog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=30, choices=API_LOG_STATUS, default='Failure')
     response_code = models.IntegerField()
+    actual_request_headers = models.JSONField(null=True, blank=True)
+    actual_request_body = models.TextField(null=True, blank=True)
+    response_time_ms = models.FloatField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

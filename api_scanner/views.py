@@ -1,72 +1,41 @@
-# views.py
-from django.shortcuts import render
-from api_scanner.models import *
-from api_scanner.serializers import *
-from utils.custom_veinlet import CustomViewSet
-from rest_framework import permissions
-from utils.calculation import *
-from utils.decorators import log_activity
-from utils.response_wrapper import ResponseWrapper
-from utils.generates import unique_slug_generator
-from utils.actions import send_action, activity_log
-from utils.permissions import CheckCustomPermission
+from django.http import JsonResponse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from api_scanner.models import APITest
+from utils.calculation import detect_mitre_patterns, calculate_vulnerability_score, serialize_mitre_data
+from django.db import transaction
 
-class APITestViewSet(CustomViewSet):
-    queryset = APITest.objects.all().order_by('name')
-    lookup_field = 'slug'
-    serializer_class = APITestSerializer
-    permission_classes = [permissions.IsAuthenticated]
+class APITestCreateView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        # 1. Validate and create APITest
+        api_test = APITest.objects.create(
+            name=request.data['name'],
+            endpoint=request.data['endpoint'],
+            http_method=request.data['http_method'],
+            headers=request.data.get('headers', {}),
+            body=request.data.get('body', {}),
+            auth_type=request.data['auth_type'],
+            auth_credentials=request.data.get('auth_credentials', ''),
+            created_by=request.user
+        )
 
-    @log_activity
-    def create(self, request, *args, **kwargs):
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=request.data, partial=True)
+        # 2. Analyze for MITRE ATT&CK patterns
+        detected_techniques = detect_mitre_patterns(api_test)
         
-        if not serializer.is_valid():
-            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
-            
-        # Generate slug
-        name = request.data.get('name')
-        slug = unique_slug_generator(name=name) if name else None
-        
-        # Save instance
-        serializer.validated_data['slug'] = slug
-        serializer.validated_data['created_by'] = request.user
-        qs = serializer.save()
+        # 3. Calculate vulnerability score
+        vuln_percentage = calculate_vulnerability_score(detected_techniques)
 
-        # Perform security analysis
-
-        # Build response
-        
-        raw_endpoint = request.data.get('endpoint')
-        request_meta = {
-            'url': raw_endpoint,
-            'method': request.method,
-            'headers': request.headers,
-            'body': request.data
-        }
-        
-        detected_techniques = detect_mitre_patterns(qs)
-
-        # 2. Analyze endpoint dynamics
-        detector = DynamicEndpointDetector()
-        normalized = detector.normalize_endpoint(raw_endpoint)
-        params = detector.extract_parameters(raw_endpoint)
-
-        # 3. Behavioral analysis
-        profiler = APIBehaviorProfiler()
-        analysis = profiler.analyze_request(request_meta)
-
-        # 4. MITRE Technique Mapping
-        mapper = MitreTechniqueMapper()
-        mitre_findings = mapper.map_anomalies(analysis['anomalies'])
-        
-        
+        # 4. Prepare the response
         response_data = {
-            'normalized_endpoint': normalized,
-            'parameter_analysis': params,
-            'mitre_findings': mitre_findings,
-            'risk_score': analysis['risk_score']
+            "api_test": {
+                "id": str(api_test.id),
+                "name": api_test.name,
+                "endpoint": api_test.endpoint
+            },
+            "mitre_analysis": serialize_mitre_data(detected_techniques) | {
+                "vulnerability_percentage": vuln_percentage
+            }
         }
 
-        return ResponseWrapper(data=response_data, msg='created', status=200)
+        return Response(response_data)

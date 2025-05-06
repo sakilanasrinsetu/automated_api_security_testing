@@ -38,9 +38,16 @@ API Documentation (Redoc): http://localhost:8000/redoc/
 # For Dump Project Data
 
 ```
-python manage.py dumpdata > api.json employee
+python manage.py dumpdata > api.json api_scanner
 
 ```
+
+# For ERP Diagram
+
+```
+python3 manage.py graph_models -a -g -o erd.png
+```
+
 
 # License
 

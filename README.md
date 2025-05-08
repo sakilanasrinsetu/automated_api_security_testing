@@ -5,7 +5,7 @@
 - Clone the repository
 - Create a `.env` file
 - Make a virtualenv and install all requirements
-- Create a database and add configuration to the `.env` file from `.env.example`
+- Create a database and add configuration to the `.env` file.
 - Run Django migrate commands
 - Run the project with `runserver` command
 

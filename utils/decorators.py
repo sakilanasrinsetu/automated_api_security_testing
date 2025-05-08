@@ -7,8 +7,9 @@ def log_activity(func):
     @wraps(func)
     def wrapper(viewset, request, *args, **kwargs):
         # Check if the request method is GET
-        if request.method == 'GET':
-            return func(viewset, request, *args, **kwargs)
+        
+        # if request.method == 'GET':
+        #     return func(viewset, request, *args, **kwargs)
         
         # Proceed with logging activity for other request methods
         response = func(viewset, request, *args, **kwargs)

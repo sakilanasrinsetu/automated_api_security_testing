@@ -113,8 +113,8 @@ class SecurityTestCase(models.Model):
     mitre_attack_technique = models.ForeignKey(MITREAttackTechnique, on_delete=models.CASCADE, related_name='security_test_cases')
     api_test = models.ForeignKey(APITest, on_delete=models.CASCADE, null=True, blank=True, related_name='security_test_cases')
     severity = models.CharField(max_length=30, choices=SEVERITY_TYPE, default='Low')
-    payload = models.JSONField()
-    expected_response = models.TextField()
+    payload = models.JSONField(blank=True, null=True)
+    expected_response = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -145,14 +145,51 @@ class TestExecution(models.Model):
     status_code = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
     def __str__(self):
         return f"Test on {self.api_test.name} - {self.security_test_case.name}"
+    
+    
+    def calculate_dynamic_risk_score(self):
+        severity_map = {
+            'Low': 1,
+            'Medium': 2,
+            'High': 3,
+            'Critical': 4,
+            'Unknown': 0,
+            'Undetermined': 0,
+            'Not Specified': 0,
+            'Not Applicable': 0,
+        }
+        
+        severity_score = severity_map.get(self.security_test_case.severity, 0)
+
+        # Assuming you have some additional logic for exploitability, impact, and exposure
+        exploitability_score = 0  # You can add a field in SecurityTestCase or TestExecution for exploitability
+        impact_score = 0  # Similarly, you could add a field for impact
+        
+        # Example formula for dynamic risk score
+        dynamic_risk_score = (
+            (severity_score * 0.5) +   # Severity is more important
+            (exploitability_score * 0.3) +
+            (impact_score * 0.2)      # Impact is also important, but less than severity
+        )
+
+        # Apply mitigations if any (mitigation could be a field in SecurityTestCase or TestExecution)
+        if self.security_test_case.payload:  # Assuming the payload or other fields indicate mitigations
+            mitigation_factor = 0.5
+            dynamic_risk_score *= mitigation_factor
+
+        # Make sure the score is within a reasonable range (e.g., 0-10)
+        dynamic_risk_score = max(0, min(10, dynamic_risk_score))
+
+        return dynamic_risk_score
     
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = f"exec-{uuid.uuid4().hex[:10]}"  # Now using the imported uuid
         super().save(*args, **kwargs)
+    
 
 class LLMAnalysis(models.Model):
     test_execution = models.ForeignKey(TestExecution, on_delete=models.CASCADE, related_name='llm_analyses')
@@ -160,6 +197,8 @@ class LLMAnalysis(models.Model):
     analysis_result = models.TextField()
     risk_score = models.IntegerField(default=0)
     mitigation_suggestions = models.TextField()
+    risk_score = models.FloatField(default=0.0)
+    result_type = models.CharField(max_length=30, choices=SEVERITY_TYPE, default='Low')
     security_controls = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -172,6 +211,7 @@ class Report(models.Model):
     slug = models.CharField(max_length=255, unique=True, db_index=True)
     summary = models.TextField()
     recommendations = models.TextField()
+    risk_level = models.CharField(max_length=30, choices=SEVERITY_TYPE, default='Low')
     generated_by = models.ForeignKey(UserAccount, on_delete=models.SET_NULL, null=True, related_name='generated_reports')
     generated_at = models.DateTimeField(auto_now_add=True)
 

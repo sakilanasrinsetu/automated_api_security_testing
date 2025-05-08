@@ -2,10 +2,6 @@ from django.db import models
 
 
 class GroundTruthVulnerability(models.Model):
-    """
-    Stores the known vulnerabilities for evaluation.
-    These are considered the ground truth for calculating accuracy.
-    """
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField()
     cve_id = models.CharField(max_length=50, blank=True, null=True, help_text="Optional CVE ID if exists")

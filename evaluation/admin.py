@@ -4,7 +4,7 @@ from .models import GroundTruthVulnerability, DetectionResult, EvaluationMetric
 
 @admin.register(GroundTruthVulnerability)
 class GroundTruthVulnerabilityAdmin(admin.ModelAdmin):
-    list_display = ('name', 'severity', 'cve_id', 'created_at')
+    list_display = ('name','id', 'severity', 'cve_id', 'created_at')
     search_fields = ('name', 'cve_id', 'description')
     list_filter = ('severity', 'created_at')
     readonly_fields = ('created_at',)

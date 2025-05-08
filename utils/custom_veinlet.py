@@ -86,29 +86,32 @@ class CustomViewSet(viewsets.ModelViewSet):
         except:
             pass
             
-        if serializer.is_valid():
-            if name:
-                slug = unique_slug_generator(name = name) 
-                
-            try:
-                serializer.validated_data['slug'] = slug
-            except:
-                pass
+        if not serializer.is_valid():
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+        
+        if name:
+            slug = unique_slug_generator(name = name) 
             
+        # try:
+        #     serializer.validated_data['slug'] = slug
+        # except:
+        #     pass
+        
+        try:
+            qs = serializer.save()
             try:
-                qs = serializer.save()
                 if slug:
                     qs.slug = slug
                     qs.save()
-                    
             except:
-                qs = serializer.save()
+                pass
+                
+        except:
+            qs = serializer.save()
 
-            # activity_log(qs, request,serializer)
+        # activity_log(qs, request,serializer)
 
-            return ResponseWrapper(data=serializer.data, msg='created', status=200)
-        else:
-            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+        return ResponseWrapper(data=serializer.data, msg='created', status=200)
 
     # ..........***.......... Update ..........***..........
     

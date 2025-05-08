@@ -49,13 +49,15 @@ python3 manage.py graph_models -a -g -o erd.png
 ```
 
 
-# License
+# For Store MITRE Attack Tactic and Technique
 
-### Key Elements:
+```
+python manage.py load_mitre
+```
 
-- **Document Section**: Lists the steps for setting up the project (cloning, virtual environment, database, etc.).
-- **ERD and API Diagrams**: Includes links to images hosted on GitHub for the ERD and API documentation.
-- **Requirements Setup**: Command to install required dependencies.
-- **Run Command**: Command to start the Django server.
-- **API URL**: Lists the URL for the main API and Redoc API documentation.
-- **Data Dump**: Command to dump the project's data.
+
+# For Store GroundTruthVulnerability
+
+```
+python manage.py add_ground_truth_vulnerabilities
+```

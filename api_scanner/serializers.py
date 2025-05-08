@@ -174,6 +174,45 @@ class ReportSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         self.fields["test_execution"] = TestExecutionSerializer(read_only=True)
         return super(ReportSerializer, self).to_representation(instance)
+
+class ReportSummarySerializer(serializers.ModelSerializer):
+    test_execution_details = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Report
+        fields = [
+                'id',
+                'test_execution_details',
+                'summary',
+                'recommendations',
+                'risk_level',
+                'generated_by',  
+                ]
+        
+    def to_representation(self, instance):
+        self.fields["generated_by"] = UserInformationBaseSerializer(read_only=True)
+        return super(ReportSummarySerializer, self).to_representation(instance)
+        
+    def get_test_execution_details(self, obj):
+        
+        response = {
+            'test_execution': {
+                'slug': obj.test_execution.slug,
+                'api_test': {
+                    'name': obj.test_execution.api_test.name,
+                    'api_url': obj.test_execution.api_test.endpoint
+                },
+            },
+            'mitre_attack_technique': {
+                'name': obj.test_execution.security_test_case.mitre_attack_technique.name,
+                # 'description': obj.test_execution.security_test_case.mitre_attack_technique.description
+            },
+            'ground_truth': {
+                'payload': obj.test_execution.security_test_case.payload,
+                # 'expected_response': obj.test_execution.security_test_case.expected_response
+            },
+        }
+        return response
     
     
 class APILogSerializer(serializers.ModelSerializer):

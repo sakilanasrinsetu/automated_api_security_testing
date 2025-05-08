@@ -713,6 +713,6 @@ class ReportViewSet(CustomViewSet):
         if not report_test_execution_qs:
             return ResponseWrapper(error_msg="This Test Execution not Report is Not found", error_code=404)
         
-        serializer = ReportSerializer(report_test_execution_qs)
+        serializer = ReportSummarySerializer(report_test_execution_qs)
         
         return ResponseWrapper(data=serializer.data, msg="Report Found", status=200)
